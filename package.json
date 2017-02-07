@@ -2,6 +2,13 @@
   "name": "templatier",
   "version": "1.0.0",
   "description": "cli tool for file creation",
+  "keywords": [
+    "cli",
+    "tool",
+    "typescript",
+    "templatier",
+    "bootstrapper"
+  ],
   "main": "dist/index.js",
   "bin": {
     "templatier": "./bin/templatier"
