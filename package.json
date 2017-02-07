@@ -7,7 +7,8 @@
     "tool",
     "typescript",
     "templatier",
-    "bootstrapper"
+    "bootstrapper",
+    "snippet"
   ],
   "main": "dist/index.js",
   "bin": {
