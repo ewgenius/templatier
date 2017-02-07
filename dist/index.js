@@ -9,10 +9,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 const program = require("commander");
 const inquirer = require("inquirer");
+const packjson = require('../package.json');
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         program
-            .version('1.0.0')
+            .version(packjson.version)
             .option('-t, --template <template-name>', 'specify template name', null)
             .option('-n, --name <file-name>', 'specify file name', null)
             .parse(process.argv);

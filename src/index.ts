@@ -1,5 +1,6 @@
 import * as program from 'commander';
 import * as inquirer from 'inquirer';
+const packjson = require('../package.json');
 
 interface TemplatierArguments {
   template: string | null;
@@ -8,7 +9,7 @@ interface TemplatierArguments {
 
 async function run() {
   program
-    .version('1.0.0')
+    .version(packjson.version)
     .option('-t, --template <template-name>', 'specify template name', null)
     .option('-n, --name <file-name>', 'specify file name', null)
     .parse(process.argv);
