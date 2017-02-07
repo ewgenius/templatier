@@ -1,0 +1,19 @@
+{
+  "name": "templatier",
+  "version": "1.0.0",
+  "description": "cli tool for file creation",
+  "main": "dist/index.js",
+  "bin": {
+    "templatier": "./bin/templatier"
+  },
+  "repository": "https://github.com/templatier/templatier",
+  "author": "Evgeniy Khramkov <ewgeniux@gmail.com>",
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.json"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "tslint": "^4.4.2",
+    "typescript": "^2.1.5"
+  }
+}
