@@ -1,0 +1,21 @@
+{
+  "templates": [{
+    "name": "test",
+    "extension": ".txt",
+    "path": "test.hbs",
+    "variables": [
+      "name",
+      "class",
+      "tet"
+    ]
+  }, {
+    "name": "test1",
+    "extension": ".js",
+    "path": "test1.hbs",
+    "variables": [
+      "name",
+      "class",
+      "tet"
+    ]
+  }]
+}
