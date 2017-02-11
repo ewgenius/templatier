@@ -7,6 +7,7 @@ const packjson = require('../package.json');
 
 interface TemplatierArguments {
   template: string | null;
+  path: string | null;
 }
 
 interface TemplatierTemplate {
@@ -17,7 +18,7 @@ interface TemplatierTemplate {
 }
 
 interface TemplatierConfig {
-  templates: TemplatierTemplate[];
+  files: TemplatierTemplate[];
 }
 
 function loadTemplate(path: string): TemplatierConfig | null {
@@ -48,9 +49,9 @@ function reducePromises(promises: (() => Promise<any>)[]) {
   }, Promise.resolve([]));
 }
 
-function compileTemplate(basePath: string, config: TemplatierConfig) {
+async function compileTemplate(basePath: string, config: TemplatierConfig) {
   // for all templates
-  return reducePromises(config.templates.map(template => {
+  return reducePromises(config.files.map(template => {
     // for all variables in template prompt value
     return () => reducePromises((template.variables || []).map(key => {
       return () => inquirer.prompt([{
@@ -77,10 +78,12 @@ async function run() {
   program
     .version(packjson.version)
     .option('-t, --template <template-name>', 'specify template name', null)
-    .option('-p, --path <dest-path>', 'specify path', './')
+    .option('-p, --path <dest-path>', 'specify path', null)
     .parse(process.argv);
 
-  let {template} = (program as any) as TemplatierArguments;
+  const templatierArguments = (program as any) as TemplatierArguments;
+  let {template} = templatierArguments;
+  let destinationPath = templatierArguments.path;
 
   if (!template) {
     const result = await inquirer.prompt([{
@@ -88,10 +91,20 @@ async function run() {
       name: 'template',
       message: 'Enter template name',
       choices: [
-        'templatier-test'
+        'templatier-react-component'
       ]
     }]);
     template = (result as any).template;
+  }
+
+  if (!destinationPath) {
+    const result = await inquirer.prompt([{
+      type: 'input',
+      name: 'path',
+      message: 'Enter destination path',
+      default: './'
+    }]);
+    destinationPath = (result as any).path;
   }
 
   const configPath = path.resolve(__dirname, '../templates', template);

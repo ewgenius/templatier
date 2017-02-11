@@ -1,0 +1,10 @@
+{
+  "files": [{
+    "name": "component",
+    "extension": ".tsx",
+    "path": "component.hbs",
+    "variables": [
+      "name"
+    ]
+  }]
+}

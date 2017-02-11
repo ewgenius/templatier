@@ -50,44 +50,57 @@ function reducePromises(promises) {
     }, Promise.resolve([]));
 }
 function compileTemplate(basePath, config) {
-    // for all templates
-    return reducePromises(config.templates.map(template => {
-        // for all variables in template prompt value
-        return () => reducePromises((template.variables || []).map(key => {
-            return () => inquirer.prompt([{
-                    type: 'input',
-                    name: key,
-                    message: `Enter ${key}`
-                }]);
-        })).then(variables => {
-            const templateVariables = variables.reduce((map, variable) => {
-                return __assign({}, map, variable);
-            }, {});
-            return readFilePromise(path.resolve(basePath, template.path))
-                .then(input => handlebars_1.compile(input))
-                .then((compiled) => compiled(templateVariables))
-                .then(output => console.log(output));
-        });
-    }));
+    return __awaiter(this, void 0, void 0, function* () {
+        // for all templates
+        return reducePromises(config.files.map(template => {
+            // for all variables in template prompt value
+            return () => reducePromises((template.variables || []).map(key => {
+                return () => inquirer.prompt([{
+                        type: 'input',
+                        name: key,
+                        message: `Enter ${key}`
+                    }]);
+            })).then(variables => {
+                const templateVariables = variables.reduce((map, variable) => {
+                    return __assign({}, map, variable);
+                }, {});
+                return readFilePromise(path.resolve(basePath, template.path))
+                    .then(input => handlebars_1.compile(input))
+                    .then((compiled) => compiled(templateVariables))
+                    .then(output => console.log(output));
+            });
+        }));
+    });
 }
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         program
             .version(packjson.version)
             .option('-t, --template <template-name>', 'specify template name', null)
-            .option('-p, --path <dest-path>', 'specify path', './')
+            .option('-p, --path <dest-path>', 'specify path', null)
             .parse(process.argv);
-        let { template } = program;
+        const templatierArguments = program;
+        let { template } = templatierArguments;
+        let destinationPath = templatierArguments.path;
         if (!template) {
             const result = yield inquirer.prompt([{
                     type: 'list',
                     name: 'template',
                     message: 'Enter template name',
                     choices: [
-                        'templatier-test'
+                        'templatier-react-component'
                     ]
                 }]);
             template = result.template;
+        }
+        if (!destinationPath) {
+            const result = yield inquirer.prompt([{
+                    type: 'input',
+                    name: 'path',
+                    message: 'Enter destination path',
+                    default: './'
+                }]);
+            destinationPath = result.path;
         }
         const configPath = path.resolve(__dirname, '../templates', template);
         const config = loadTemplate(configPath);
