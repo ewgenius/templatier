@@ -30,7 +30,7 @@ function loadTemplate(path) {
         return null;
     }
 }
-function writeFilPromise(path, content) {
+function writeFilePromise(path, content) {
     return new Promise((resolve, reject) => {
         fs_1.writeFile(path, content, (err, data) => {
             if (err)
@@ -96,7 +96,7 @@ function compileTemplate(basePath, config, destinationPath) {
                             .then((compiled) => compiled(templateVariables))
                             .then(output => {
                             const p = path.resolve(__dirname, destinationPath, destinationName);
-                            console.log(p);
+                            return writeFilePromise(p, output);
                         });
                     });
                 });

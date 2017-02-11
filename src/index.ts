@@ -31,7 +31,7 @@ function loadTemplate(path: string): TemplatierConfig | null {
   }
 }
 
-function writeFilPromise(path: string, content: string) {
+function writeFilePromise(path: string, content: string) {
   return new Promise((resolve, reject) => {
     writeFile(path, content, (err, data) => {
       if (err) reject(err);
@@ -97,7 +97,7 @@ async function compileTemplate(basePath: string, config: TemplatierConfig, desti
             .then((compiled: any) => compiled(templateVariables))
             .then(output => {
               const p = path.resolve(__dirname, destinationPath, destinationName);
-              console.log(p);
+              return writeFilePromise(p, output);
             });
         });
       });
