@@ -1,4 +1,12 @@
 "use strict";
+var __assign = (this && this.__assign) || Object.assign || function(t) {
+    for (var s, i = 1, n = arguments.length; i < n; i++) {
+        s = arguments[i];
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+            t[p] = s[p];
+    }
+    return t;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -32,20 +40,33 @@ function readFilePromise(filename) {
         });
     });
 }
+// chaining promises array in one promise, which resolve array of results
+function reducePromises(promises) {
+    return promises.reduce((reducer, promise) => {
+        return reducer.then(reduced => promise()
+            .then(result => {
+            return [...reduced, result];
+        }));
+    }, Promise.resolve([]));
+}
 function compileTemplate(basePath, config) {
-    Promise.all(config.templates.map(template => {
-        return Promise.all(Object.keys(template.variables || {}).map(key => {
-            console.log(key);
-            return inquirer.prompt([{
+    // for all templates
+    return reducePromises(config.templates.map(template => {
+        // for all variables in template prompt value
+        return () => reducePromises((template.variables || []).map(key => {
+            return () => inquirer.prompt([{
                     type: 'input',
                     name: key,
                     message: `Enter ${key}`
                 }]);
         })).then(variables => {
-            console.log(variables);
+            const templateVariables = variables.reduce((map, variable) => {
+                return __assign({}, map, variable);
+            }, {});
             return readFilePromise(path.resolve(basePath, template.path))
                 .then(input => handlebars_1.compile(input))
-                .then((compiled) => compiled({}));
+                .then((compiled) => compiled(templateVariables))
+                .then(output => console.log(output));
         });
     }));
 }
@@ -63,8 +84,7 @@ function run() {
                     name: 'template',
                     message: 'Enter template name',
                     choices: [
-                        'templatier-test',
-                        'templatier-react'
+                        'templatier-test'
                     ]
                 }]);
             template = result.template;
@@ -72,7 +92,7 @@ function run() {
         const configPath = path.resolve(__dirname, '../templates', template);
         const config = loadTemplate(configPath);
         if (config) {
-            console.log(compileTemplate(configPath, config));
+            compileTemplate(configPath, config);
         }
     });
 }

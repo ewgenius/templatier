@@ -38,19 +38,37 @@ function readFilePromise(filename: string) {
   });
 }
 
+// chaining promises array in one promise, which resolve array of results
+function reducePromises(promises: (() => Promise<any>)[]) {
+  return promises.reduce((reducer, promise) => {
+    return reducer.then(reduced => promise()
+      .then(result => {
+        return [...reduced, result];
+      }));
+  }, Promise.resolve([]));
+}
+
 function compileTemplate(basePath: string, config: TemplatierConfig) {
-  Promise.all(config.templates.map(template => {
-    return Promise.all(Object.keys(template.variables || {}).map(key => {
-      return inquirer.prompt([{
+  // for all templates
+  return reducePromises(config.templates.map(template => {
+    // for all variables in template prompt value
+    return () => reducePromises((template.variables || []).map(key => {
+      return () => inquirer.prompt([{
         type: 'input',
         name: key,
         message: `Enter ${key}`
       }]);
     })).then(variables => {
-      console.log(variables);
+      const templateVariables = variables.reduce((map, variable) => {
+        return {
+          ...map,
+          ...variable
+        };
+      }, {});
       return readFilePromise(path.resolve(basePath, template.path))
         .then(input => compile(input))
-        .then((compiled: any) => compiled({}));
+        .then((compiled: any) => compiled(templateVariables))
+        .then(output => console.log(output));
     });
   }));
 }
@@ -70,8 +88,7 @@ async function run() {
       name: 'template',
       message: 'Enter template name',
       choices: [
-        'templatier-test',
-        'templatier-react'
+        'templatier-test'
       ]
     }]);
     template = (result as any).template;
@@ -80,7 +97,7 @@ async function run() {
   const configPath = path.resolve(__dirname, '../templates', template);
   const config = loadTemplate(configPath);
   if (config) {
-    console.log(compileTemplate(configPath, config));
+    compileTemplate(configPath, config);
   }
 }
 
