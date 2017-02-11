@@ -30,6 +30,16 @@ function loadTemplate(path) {
         return null;
     }
 }
+function writeFilPromise(path, content) {
+    return new Promise((resolve, reject) => {
+        fs_1.writeFile(path, content, (err, data) => {
+            if (err)
+                reject(err);
+            else
+                resolve(data);
+        });
+    });
+}
 function readFilePromise(filename) {
     return new Promise((resolve, reject) => {
         fs_1.readFile(filename, 'utf8', (err, data) => {
@@ -49,26 +59,48 @@ function reducePromises(promises) {
         }));
     }, Promise.resolve([]));
 }
-function compileTemplate(basePath, config) {
+function compileTemplate(basePath, config, destinationPath) {
     return __awaiter(this, void 0, void 0, function* () {
         // for all templates
         return reducePromises(config.files.map(template => {
-            // for all variables in template prompt value
-            return () => reducePromises((template.variables || []).map(key => {
-                return () => inquirer.prompt([{
-                        type: 'input',
-                        name: key,
-                        message: `Enter ${key}`
-                    }]);
-            })).then(variables => {
-                const templateVariables = variables.reduce((map, variable) => {
-                    return __assign({}, map, variable);
-                }, {});
-                return readFilePromise(path.resolve(basePath, template.path))
-                    .then(input => handlebars_1.compile(input))
-                    .then((compiled) => compiled(templateVariables))
-                    .then(output => console.log(output));
-            });
+            return () => {
+                // ask for template destination name if required
+                return new Promise(resolve => {
+                    if (template.askForName) {
+                        inquirer.prompt([{
+                                type: 'input',
+                                name: 'name',
+                                message: 'Enter destination name',
+                                default: template.name + template.extension || ''
+                            }]).then(result => {
+                            resolve(result.name);
+                        });
+                    }
+                    else {
+                        let destinationName = template.name + template.extension;
+                        resolve(destinationName);
+                    }
+                }).then(destinationName => {
+                    return reducePromises((template.variables || []).map(key => {
+                        return () => inquirer.prompt([{
+                                type: 'input',
+                                name: key,
+                                message: `Enter ${key}`
+                            }]);
+                    })).then(variables => {
+                        const templateVariables = variables.reduce((map, variable) => {
+                            return __assign({}, map, variable);
+                        }, {});
+                        return readFilePromise(path.resolve(basePath, template.path))
+                            .then(input => handlebars_1.compile(input))
+                            .then((compiled) => compiled(templateVariables))
+                            .then(output => {
+                            const p = path.resolve(__dirname, destinationPath, destinationName);
+                            console.log(p);
+                        });
+                    });
+                });
+            };
         }));
     });
 }
@@ -105,7 +137,7 @@ function run() {
         const configPath = path.resolve(__dirname, '../templates', template);
         const config = loadTemplate(configPath);
         if (config) {
-            compileTemplate(configPath, config);
+            compileTemplate(configPath, config, destinationPath);
         }
     });
 }

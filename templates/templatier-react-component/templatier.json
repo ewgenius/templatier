@@ -2,6 +2,14 @@
   "files": [{
     "name": "component",
     "extension": ".tsx",
+    "askForName": true,
+    "path": "component.hbs",
+    "variables": [
+      "name"
+    ]
+  }, {
+    "name": "component",
+    "extension": ".tsx",
     "path": "component.hbs",
     "variables": [
       "name"
